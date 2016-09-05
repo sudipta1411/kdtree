@@ -27,8 +27,8 @@ class Node :
     @property.setter
     def axis(self,val) : self.__axis = val
 
-    #@property
-    #def left(self) : return self.__left
+    @property
+    def left(self) : return self.__left
 
     @property.setter
     def left(self,val) : self.__left = val
