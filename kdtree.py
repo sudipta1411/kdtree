@@ -4,48 +4,55 @@
 # Note: Dimension is 3 in general
 
 from random import randint
+import logging
 
 __author__ = u'Sudipta Roy <csy157533@iitd.ernet.in>'
+logging.basicConfig(level=logging.DEBUG,
+        format='%(asctime)s [%(levelname)s] %(message)s')
 
-class Node :
-    def __init__(self,data=None, axis=None,
-            left=None, right=None) :
-        self.__data = data
-        self.__axis = axis
+class Node(object) :
+    def __init__(self, left=None, right=None) :
         self.__left = left
         self.__right = right
 
     @property
-    def data(self) : return self.__data
-
-    @property.setter
-    def data(self,val) : self.__data = val
-
-    @property
-    def axis(self) : return self.__axis
-
-    @property.setter
-    def axis(self,val) : self.__axis = val
-
-    @property
     def left(self) : return self.__left
 
-    @property.setter
+    @left.setter
     def left(self,val) : self.__left = val
 
     @property
     def right(self) : return self.__right
 
-    @property.setter
+    @right.setter
     def right(self,val) : self.__right = val
 
-    @property
-    def is_leaf(self) :
-        return not self.__axis
+class LeafNode(Node) :
+    def __init__(self,data=None) :
+        self.__data = data
+        super(LeafNode,self).__init__()
 
-class KdTree :
+    @property
+    def data(self) : return self.__data
+
+    @data.setter
+    def data(self,val) : self.__data = val
+
+class InnerNode(Node) :
+    def __init__(self,axis=None, left=None, right=None) :
+        self.__axis = axis
+        super(InnerNode,self).__init__(left=left,right=right)
+
+    @property
+    def axis(self) : return self.__axis
+
+    @axis.setter
+    def axis(self,val) : self.__axis = val
+
+class KdTree(object) :
     '''A class implementing KdTree data structure'''
     def __init__(self,points=None,dim=2) :
+        self.__root = None
         self.__dim = dim #dimension of points
         if(points is not None and
                 any(pt is None or len(pt) != self.__dim for pt in points)) :
@@ -55,33 +62,47 @@ class KdTree :
         self.__sorted_view = []
 
     def build(self) :
-        print 'Bulding tree...'
+        logging.debug("Building tree...")
         depth = 0
         if self.__pts is None or len(self.__pts) == 0 :
-            print "No points to build the KdTree on. Add points"
+            log.error("No points to build the KdTree on. Add points")
             return
         self.__make_sorted_view()
-        self.__build_tree(depth)
+        self.__root = self.__build_tree(self.__pts,depth)
 
-    def __build_tree(self,depth): pass
+    def __build_tree(self,,pts,depth):
+        if len(pts) == 1 :
+            return LeafNode(data=pts[0])
+
+    def add_points(self,points) :
+        for point in points :
+            self.__pts.append(point)
 
     def __make_sorted_view(self) :
-        #print self.__pts
-        # __sorted_view[d] stores the points sorted in
+        # __sorted_view[d] stores the points sorted in 
         # d+1 th dimension
         for i in range(self.__dim) :
             self.__sorted_view.append(sorted(self.__pts,
                 key = lambda x : x[i]))
-        #print self.__sorted_view
 
 def create_random_points(upper_bound, nr_pts, nr_dim):
+    '''returns a LIST of size nr_pts of nr_dim dimensional points'''
     return [create_random_point(upper_bound,nr_dim) for i in xrange(nr_pts)]
 
 def create_random_point(upper_bound, nr_dim) :
+    '''returns a SINGLE nr_dim dimensional point'''
     point = []
     for i in xrange(nr_dim) :
         point.append(randint(0,upper_bound))
     return tuple(point)
+
+def median(lst) :
+    lst_len = len(lst)
+    idx = (lst_len-1)//2
+    if lst_len % 2 :
+        return lst[idx]
+    else:
+        return (lst[idx] + lst[idx+1])/2.0
 
 def main() :
     points = create_random_points(500,25,2)
