@@ -68,22 +68,30 @@ class KdTree(object) :
             log.error("No points to build the KdTree on. Add points")
             return
         self.__make_sorted_view()
-        self.__root = self.__build_tree(self.__pts,depth)
+        self.__root = self.__build_tree(self.__sorted_view[0],depth)
 
-    def __build_tree(self,,pts,depth):
+    def __build_tree(self,pts,depth):
         if len(pts) == 1 :
             return LeafNode(data=pts[0])
 
-    def add_points(self,points) :
+    def add_points(self, points) :
         for point in points :
             self.__pts.append(point)
 
     def __make_sorted_view(self) :
-        # __sorted_view[d] stores the points sorted in 
+        # __sorted_view[d] stores the points sorted in
         # d+1 th dimension
         for i in range(self.__dim) :
             self.__sorted_view.append(sorted(self.__pts,
                 key = lambda x : x[i]))
+
+    @staticmethod
+    def median(lst) :
+        lst_len = len(lst)
+        idx = (lst_len-1)//2
+        if lst_len % 2 :
+            return lst[idx]
+        return (lst[idx] + lst[idx+1])/2.0
 
 def create_random_points(upper_bound, nr_pts, nr_dim):
     '''returns a LIST of size nr_pts of nr_dim dimensional points'''
@@ -96,13 +104,6 @@ def create_random_point(upper_bound, nr_dim) :
         point.append(randint(0,upper_bound))
     return tuple(point)
 
-def median(lst) :
-    lst_len = len(lst)
-    idx = (lst_len-1)//2
-    if lst_len % 2 :
-        return lst[idx]
-    else:
-        return (lst[idx] + lst[idx+1])/2.0
 
 def main() :
     points = create_random_points(500,25,2)
