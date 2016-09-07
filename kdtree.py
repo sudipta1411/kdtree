@@ -5,10 +5,12 @@
 
 from random import randint
 import logging
+import sys
 
 __author__ = u'Sudipta Roy <csy157533@iitd.ernet.in>'
 logging.basicConfig(level=logging.DEBUG,
         format='%(asctime)s [%(levelname)s] %(message)s')
+sys.setrecursionlimit(10000)
 
 class Node(object) :
     def __init__(self, left=None, right=None) :
@@ -71,7 +73,8 @@ class KdTree(object) :
         self.__root = self.__build_tree(self.__sorted_view[0],depth)
         print self.__root
 
-    def __build_tree(self,pts,depth):
+    def __build_tree(self,pts,depth) :
+        logging.debug('depth : ' +str(depth))
         if len(pts) == 1 :
             return LeafNode(data=pts[0])
         dim = self.__canon(depth)
@@ -105,6 +108,9 @@ class KdTree(object) :
                 key = lambda x : x[i]))
         print self.__sorted_view
 
+    @property
+    def root(self) : return self.__root
+
     @staticmethod
     def median(lst,index) :
         lst_len = len(lst)
@@ -130,7 +136,8 @@ def main() :
             #(188, 128), (429, 214),(476, 132), (272, 485), (8, 415), (290, 124),
             #(407, 205), (166, 148)]
     #points = create_random_points(500,25,2)
-    kdtree = KdTree(points)
+    #points=[(16, 7, 214), (52, 407, 386), (65, 126, 83), (88, 204, 371)]
+    kdtree = KdTree(points,dim=2)
     kdtree.build()
 
 if __name__ == '__main__':
