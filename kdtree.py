@@ -69,6 +69,7 @@ class KdTree(object) :
             return
         self.__make_sorted_view()
         self.__root = self.__build_tree(self.__sorted_view[0],depth)
+        print self.__root
 
     def __build_tree(self,pts,depth):
         if len(pts) == 1 :
@@ -78,16 +79,12 @@ class KdTree(object) :
             x[self.__canon(dim+1)])[self.__canon(dim+1)]
         min_pt = min(pts,key = lambda x :
             x[self.__canon(dim+1)])[self.__canon(dim+1)]
-        logging.debug('max,min : ' + str(max_pt) + ',' + str(min_pt))
         med = KdTree.median(pts,dim)
-        print med
         next_view = self.__sorted_view[self.__canon(dim+1)]
         lesser = [pt for pt in next_view if pt[dim]<med
             and min_pt<=pt[self.__canon(dim+1)]<=max_pt]
         greater = [pt for pt in next_view if pt[dim]>=med
             and min_pt<=pt[self.__canon(dim+1)]<=max_pt]
-        print lesser
-        print greater
         node = InternalNode(axis = med)
         node.left = self.__build_tree(lesser,depth+1)
         node.right = self.__build_tree(greater,depth+1)
