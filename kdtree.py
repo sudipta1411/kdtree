@@ -87,11 +87,13 @@ class KdTree(object) :
     def root(self) : return self.__root
 
     def __build_tree(self,pts,depth, parent=None) :
-        logging.debug('depth : ' +str(depth))
+        # logging.debug('depth : ' +str(depth))
+        if pts == None or len(pts) == 0 :
+            return LeafNode()
         if len(pts) == 1 :
             return LeafNode(data=pts[0], parent=parent)
         dim = self.__canon(depth)
-        print 'dim :' + str(dim)
+        # print 'dim :' + str(dim)
         max_pt = max(pts,key = lambda x :
             x[self.__canon(dim+1)])[self.__canon(dim+1)]
         min_pt = min(pts,key = lambda x :
@@ -106,10 +108,10 @@ class KdTree(object) :
         greater = [pt for pt in next_view if pt[dim]>=med
             and min_pt<=pt[self.__canon(dim+1)]<=max_pt
             and mn<=pt[dim]<=mx]
-        print 'median : ' + str(med)
-        print str(min_pt) + ':' + str(max_pt)
-        print lesser
-        print greater
+        # print 'median : ' + str(med)
+        # print str(min_pt) + ':' + str(max_pt)
+        # print lesser
+        # print greater
         node = InternalNode(axis = med, parent=parent)
         node.left = self.__build_tree(lesser,depth+1, parent=node)
         node.right = self.__build_tree(greater,depth+1, parent=node)
@@ -128,7 +130,7 @@ class KdTree(object) :
         for i in range(self.__dim) :
             self.__sorted_view.append(sorted(self.__pts,
                 key = lambda x : x[i]))
-        print self.__sorted_view
+        # print self.__sorted_view
 
     @staticmethod
     def median(lst,index) :
@@ -152,9 +154,12 @@ def create_random_point(upper_bound, nr_dim) :
 
 def main() :
     points = [(307, 75), (77, 92), (208, 146), (376, 63), (129, 248), (265, 258), (57, 410), (389, 456),
-            (188, 128)]#, (429, 214),(476, 132), (272, 485), (8, 415), (290, 124),
-            #(407, 205), (166, 148)]
-    #points = create_random_points(500,25,2)
+            (188, 128), (429, 214),(476, 132), (272, 485), (8, 415), (290, 124),
+            (407, 205), (166, 148)]
+    nr_pts = 4096
+    upper_bound = 10 * nr_pts
+    points = create_random_points(upper_bound,nr_pts,2)
+    # XXX : random 64 points sometimes failing
     #points=[(16, 7, 214), (52, 407, 386), (65, 126, 83), (88, 204, 371)]
     kdtree = KdTree(points,dim=2)
     kdtree.build()
