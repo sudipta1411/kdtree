@@ -81,6 +81,11 @@ class KdTree(object) :
         self.__root = self.__build_tree(self.__sorted_view[0],depth)
         print self.__root
 
+    def print_tree(self, node) : pass
+
+    @property
+    def root(self) : return self.__root
+
     def __build_tree(self,pts,depth, parent=None) :
         logging.debug('depth : ' +str(depth))
         if len(pts) == 1 :
@@ -125,15 +130,12 @@ class KdTree(object) :
                 key = lambda x : x[i]))
         print self.__sorted_view
 
-    @property
-    def root(self) : return self.__root
-
     @staticmethod
     def median(lst,index) :
         lst_len = len(lst)
         idx = (lst_len-1)//2
         if lst_len % 2 :
-            return lst[idx]
+            return lst[idx][index]
         return (lst[idx][index] + lst[idx+1][index])/2.0
 
 def create_random_points(upper_bound, nr_pts, nr_dim):
@@ -150,8 +152,8 @@ def create_random_point(upper_bound, nr_dim) :
 
 def main() :
     points = [(307, 75), (77, 92), (208, 146), (376, 63), (129, 248), (265, 258), (57, 410), (389, 456),
-            (188, 128), (429, 214),(476, 132), (272, 485), (8, 415), (290, 124),
-            (407, 205), (166, 148)]
+            (188, 128)]#, (429, 214),(476, 132), (272, 485), (8, 415), (290, 124),
+            #(407, 205), (166, 148)]
     #points = create_random_points(500,25,2)
     #points=[(16, 7, 214), (52, 407, 386), (65, 126, 83), (88, 204, 371)]
     kdtree = KdTree(points,dim=2)
