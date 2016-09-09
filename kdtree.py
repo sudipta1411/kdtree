@@ -11,7 +11,7 @@ import time
 __author__ = u'Sudipta Roy <csy157533@iitd.ernet.in>'
 logging.basicConfig(level=logging.DEBUG,
         format='%(asctime)s [%(levelname)s] %(message)s')
-#sys.setrecursionlimit(10000)
+sys.setrecursionlimit(100)
 
 class Node(object) :
     def __init__(self, left=None, right=None, parent=None) :
@@ -120,22 +120,32 @@ class KdTree(object) :
             return LeafNode(data=pts[0], parent=parent)
         dim = self.__canon(depth)
         print 'dim :' + str(dim)
-        max_pt = max(pts,key = lambda x :
+        max_next = max(pts,key = lambda x :
             x[self.__canon(dim+1)])[self.__canon(dim+1)]
-        min_pt = min(pts,key = lambda x :
+        min_next = min(pts,key = lambda x :
             x[self.__canon(dim+1)])[self.__canon(dim+1)]
-        mx = max(pts,key = lambda x : x[dim])[dim] #max of current dimension
-        mn = min(pts,key = lambda x : x[dim])[dim] #min of current dimension
+        min_cur = pts[0][dim] #max(pts,key = lambda x : x[dim])[dim] #max of current dimension
+        max_cur = pts[len(pts)-1][dim] #min(pts,key = lambda x : x[dim])[dim] #min of current dimension
+        max_nn = max(pts,key = lambda x :
+            x[self.__canon(dim+2)])[self.__canon(dim+2)]
+        min_nn = min(pts,key = lambda x :
+            x[self.__canon(dim+2)])[self.__canon(dim+2)]
         med = KdTree.median(pts,dim)
         next_view = self.__sorted_view[self.__canon(dim+1)]
         lesser = [pt for pt in next_view if pt[dim]<med
-            and min_pt<=pt[self.__canon(dim+1)]<=max_pt
-            and mn<=pt[dim]<mx]
+            and min_next<=pt[self.__canon(dim+1)]<=max_next
+            and min_cur<=pt[dim]<=max_cur
+            and min_nn<=pt[self.__canon(dim+2)]<=max_nn]
         greater = [pt for pt in next_view if pt[dim]>=med
-            and min_pt<=pt[self.__canon(dim+1)]<=max_pt
-            and mn<=pt[dim]<=mx]
+            and min_next<=pt[self.__canon(dim+1)]<=max_next
+            and min_cur<=pt[dim]<=max_cur
+            and min_nn<=pt[self.__canon(dim+2)]<=max_nn]
+        # lesser = [pt for pt in pts if pt[dim]<med]
+        # lesser.sort(key=lambda x : x[self.__canon(dim+1)])
+        # greater = [pt for pt in pts if pt[dim]>=med]
+        # greater.sort(key=lambda x : x[self.__canon(dim+1)])
         print 'median : ' + str(med)
-        print str(min_pt) + ':' + str(max_pt)
+        print str(min_cur) + ':' + str(max_cur)
         print lesser
         print greater
         node = InternalNode(axis = med, parent=parent)
@@ -156,7 +166,7 @@ class KdTree(object) :
         for i in range(self.__dim) :
             self.__sorted_view.append(sorted(self.__pts,
                 key = lambda x : x[i]))
-        # print self.__sorted_view
+        print self.__sorted_view
 
     @staticmethod
     def median(lst,index) :
@@ -182,15 +192,23 @@ def main() :
     points = [(307, 75), (77, 92), (208, 146), (376, 63), (129, 248), (265, 258), (57, 410), (389, 456),
             (188, 128), (429, 214),(476, 132), (272, 485), (8, 415), (290, 124),
             (407, 205), (166, 148), (166, 149)]
-    nr_pts = 8
+    nr_pts = 4096
     upper_bound =10 * nr_pts
     points = create_random_points(upper_bound,nr_pts,2)
+    points3d = create_random_points(upper_bound,nr_pts,3)
+    #points3d = [(56, 68, 74), (83, 16, 5), (87, 76, 89), (16, 46, 59), (73, 37, 12),
+    #        (59, 27, 82), (71, 10, 13), (73, 61, 53), (62, 26, 85)]
+    print points3d
     # XXX : random 64 points sometimes failing
-    kdtree = KdTree(points,dim=2)
-    kdtree.build()
-    a=[]
-    kdtree.inorder(a)
-    print a
+    kdtree = KdTree(points3d,dim=3)
+    try:
+        kdtree.build()
+        print "Height of the tree is : " , kdtree.height
+        a=[]
+        #kdtree.inorder(a)
+        print a
+    except RuntimeError:
+        print 'maximum recursion depth exceeded while calling a Python object'
 
 if __name__ == '__main__':
     main()
