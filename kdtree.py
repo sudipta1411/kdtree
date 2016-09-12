@@ -11,7 +11,7 @@ import time
 __author__ = u'Sudipta Roy <csy157533@iitd.ernet.in>'
 logging.basicConfig(level=logging.DEBUG,
         format='%(asctime)s [%(levelname)s] %(message)s')
-sys.setrecursionlimit(100)
+#sys.setrecursionlimit(100)
 
 class Node(object) :
     def __init__(self, left=None, right=None, parent=None, depth=-1) :
