@@ -87,6 +87,8 @@ class HyperRectangle(object) :
         self.__min_coord = min_coord
 
     def inside(self, pt) :
+        if pt is None :
+            return False
         if len(pt) != self.__dim :
             raise ValueError("Dimension mismatch!!! hyperrectangle ", self.__dim,
                     "while the point is ", pt)
@@ -266,6 +268,23 @@ def create_random_point(upper_bound, nr_dim) :
         point.append(randint(0,upper_bound))
     return tuple(point)
 
+def plot_points(points,maxes,mins) :
+    try :
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print 'matplotlib is not installed.'
+        return
+    plt.scatter(*zip(*points), marker='x', color='r')
+    x_max = maxes[0]
+    y_max = maxes[1]
+    x_min = mins[0]
+    y_min = mins[1]
+    plt.plot([x_min,x_min],[y_min,y_max])
+    plt.plot([x_min,x_max],[y_min,y_min])
+    plt.plot([x_min,x_max],[y_max,y_max])
+    plt.plot([x_max,x_max],[y_min,y_max])
+    plt.grid()
+    plt.show()
 
 def main() :
     points = [(307, 75), (77, 92), (208, 146), (376, 63), (129, 248), (265, 258), (57, 410), (389, 456),
@@ -273,20 +292,23 @@ def main() :
             (407, 205), (166, 148), (166, 149)]
     nr_pts = 4096
     upper_bound =10 * nr_pts
-    #points = create_random_points(upper_bound,nr_pts,2)
+    points = create_random_points(upper_bound,nr_pts,2)
     points3d = create_random_points(upper_bound,nr_pts,3)
     points3d = [(56, 68, 74), (83, 16, 5), (87, 76, 89), (16, 46, 59), (73, 37, 12),
             (59, 27, 82), (71, 10, 13), (73, 61, 53), (62, 26, 85)]
-    # print points3d
+    # print points
     # XXX : random 64 points sometimes failing
     kdtree = KdTree(points,dim=2)
     kdtree.build()
-    print "Height of the tree is : " , kdtree.height
+    # print "Height of the tree is : " , kdtree.height
     a=[]
-    print kdtree.inorder([], inte=False)
+    # print kdtree.inorder([], inte=False)
+    maxes = [10000,10000]
+    mins = [1000,1000]
     # print a
-    print kdtree.query([400,400,400],[0,0,0])
-    print "depth of the tree is : " , kdtree.root.depth
+    print kdtree.query(maxes,mins)
+    plot_points(points,maxes,mins)
+    # print "depth of the tree is : " , kdtree.root.depth
 
 if __name__ == '__main__':
     main()
