@@ -82,22 +82,37 @@ class InternalNode(Node) :
 class HyperRectangle(object) :
     def __init__(self,dim,max_coord,min_coord) :
         self.__dim = dim #dimension of the hyperrectangle
+
         self.__max_coord = max_coord
         self.__min_coord = min_coord
 
-    def inside(self,pt) :
+    def inside(self, pt) :
         if len(pt) != self.__dim :
             raise ValueError("Dimension mismatch!!! hyperrectangle ", self.__dim,
                     "while the point is ", pt)
         max_min = zip(self.__min_coord,self.__max_coord)
         for i in range(self.__dim) :
-            if pt[i]<max_min[i][0] or pt[i]>max_min[i][1]:
+            if pt[i]<max_min[i][0] or pt[i]>max_min[i][1] :
                 return False
         return True
 
-    def intersect(self,region) :
-        #region is a set of points
-        pass
+    def intersect(self, region) :
+        # region is a set of points
+        # returns True iff any points lies
+        # inside the hyperrectangle
+        for pt in region :
+            if self.inside(pt) :
+                return True
+        return False
+
+    def contains(self,region) :
+        # returns True iff the region
+        # is fully contained inside the
+        # hyperrectangle
+        for pt in region :
+            if not self.inside(pt) :
+                return False
+        return True
 
     def __str__(self) :
         return "HyperRectangle {0}".format(list(zip(self.__min_coord,self.__max_coord)))
@@ -110,8 +125,8 @@ class KdTree(object) :
     def __init__(self,points=None,dim=2) :
         self.__root = Node()
         self.__dim = dim #dimension of points
-        if(points is not None and
-                any(pt is None or len(pt) != self.__dim for pt in points)) :
+        if points is not None and \
+                any(pt is None or len(pt) != self.__dim for pt in points) :
             raise ValueError("Dimension mismatch " + str(points) +
                     " and dimension %d"%dim)
         self.__pts = list(set(points))
@@ -134,7 +149,6 @@ class KdTree(object) :
         #print self.__root
 
     def inorder(self,a, node=None, inte=True) :
-        #for debugging purpose only
         this = self.__root if node is None else node
         # if this is not None :
         if isinstance(this,LeafNode) :
@@ -144,11 +158,13 @@ class KdTree(object) :
             if inte == True :
                 a += [this]
             self.inorder(a,this.right,inte)
+        return a
 
     def query(self, maxes,mins) :
-        if rect is None :
+        if maxes is None and mins is None :
             raise ValueError("No Query range specified")
-        return self.__query(self.__root, HyperRectangle(maxes, mins, dim=self.__dim))
+        return self.__query(self.__root, HyperRectangle(max_coord=maxes,
+            min_coord=mins, dim=self.__dim), [])
 
     @property
     def root(self) : return self.__root
@@ -198,8 +214,23 @@ class KdTree(object) :
         node.right = self.__build_tree(greater,depth+1, parent=node)
         return node
 
-    def __query(self, node, rect) :
-        pass
+    def __query(self, node, rect, result) :
+        if isinstance(node,LeafNode) :
+            if rect.inside(node.data) :
+                result += [node.data]
+        else :
+            region = [pt.data for pt in self.inorder([], node.left, inte=False)]
+            if rect.contains(region) :
+                result += region
+            elif rect.intersect(region) :
+                self.__query(node.left, rect, result)
+            region = [pt.data for pt in self.inorder([], node.right, inte=False)]
+            if rect.contains(region) :
+                result += region
+            elif rect.intersect(region) :
+                self.__query(node.right, rect, result)
+        return result
+
 
     def __canon(self,index) :
         return index % self.__dim #increment/decrement of index must be modulo @dim
@@ -242,18 +273,19 @@ def main() :
             (407, 205), (166, 148), (166, 149)]
     nr_pts = 4096
     upper_bound =10 * nr_pts
-    points = create_random_points(upper_bound,nr_pts,2)
+    #points = create_random_points(upper_bound,nr_pts,2)
     points3d = create_random_points(upper_bound,nr_pts,3)
     points3d = [(56, 68, 74), (83, 16, 5), (87, 76, 89), (16, 46, 59), (73, 37, 12),
             (59, 27, 82), (71, 10, 13), (73, 61, 53), (62, 26, 85)]
     # print points3d
     # XXX : random 64 points sometimes failing
-    kdtree = KdTree(points3d,dim=3)
+    kdtree = KdTree(points,dim=2)
     kdtree.build()
     print "Height of the tree is : " , kdtree.height
     a=[]
-    kdtree.inorder(a,inte=False)
-    print a
+    print kdtree.inorder([], inte=False)
+    # print a
+    print kdtree.query([400,400,400],[0,0,0])
     print "depth of the tree is : " , kdtree.root.depth
 
 if __name__ == '__main__':
