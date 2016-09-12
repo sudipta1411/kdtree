@@ -95,7 +95,9 @@ class HyperRectangle(object) :
                 return False
         return True
 
-    def 
+    def intersect(self,region) :
+        #region is a set of points
+        pass
 
     def __str__(self) :
         return "HyperRectangle {0}".format(list(zip(self.__min_coord,self.__max_coord)))
