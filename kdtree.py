@@ -7,6 +7,7 @@ from random import randint
 import logging
 import sys
 import time
+from optparse import OptionParser
 
 __author__ = u'Sudipta Roy <csy157533@iitd.ernet.in>'
 logging.basicConfig(level=logging.DEBUG,
@@ -272,9 +273,9 @@ def plot_points(points,maxes,mins) :
     try :
         import matplotlib.pyplot as plt
     except ImportError:
-        print 'matplotlib is not installed.'
+        print 'matplotlib is not installed !!'
         return
-    plt.scatter(*zip(*points), marker='x', color='r')
+    plt.scatter(*zip(*points), marker='o', color='r')
     x_max = maxes[0]
     y_max = maxes[1]
     x_min = mins[0]
@@ -286,29 +287,99 @@ def plot_points(points,maxes,mins) :
     plt.grid()
     plt.show()
 
-def main() :
-    points = [(307, 75), (77, 92), (208, 146), (376, 63), (129, 248), (265, 258), (57, 410), (389, 456),
-            (188, 128), (429, 214),(476, 132), (272, 485), (8, 415), (290, 124),
-            (407, 205), (166, 148), (166, 149)]
-    nr_pts = 4096
-    upper_bound =10 * nr_pts
-    points = create_random_points(upper_bound,nr_pts,2)
-    points3d = create_random_points(upper_bound,nr_pts,3)
-    points3d = [(56, 68, 74), (83, 16, 5), (87, 76, 89), (16, 46, 59), (73, 37, 12),
-            (59, 27, 82), (71, 10, 13), (73, 61, 53), (62, 26, 85)]
-    # print points
-    # XXX : random 64 points sometimes failing
+def plot_points3d(points,maxes,mins,res) :
+    try :
+        from mpl_toolkits.mplot3d import Axes3D
+        import matplotlib.pyplot as plt
+        import numpy as np
+    except ImportError :
+        print 'matplotlib/numpy is not installed !!'
+        return
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter3D(*zip(*points), marker='o', c='y')
+    ax.scatter3D(*zip(*res), marker='o', c='r')
+    x_max = maxes[0]
+    y_max = maxes[1]
+    z_max = maxes[2]
+    x_min = mins[0]
+    y_min = mins[1]
+    z_min = mins[2]
+    r1 = [x_min, x_max]
+    r2 = [y_min, y_max]
+    r3 = [z_min,z_max]
+    X,Y = np.meshgrid(r1,r2)
+    ax.plot_surface(X,Y,z_min,alpha=0.3)
+    ax.plot_surface(X,Y,z_max,alpha=0.3)
+    X,Z = np.meshgrid(r1,r3)
+    ax.plot_surface(X,y_min,Z,alpha=0.3)
+    ax.plot_surface(X,y_max,Z,alpha=0.3)
+    Y,Z = np.meshgrid(r2,r3)
+    ax.plot_surface(x_min,Y,Z,alpha=0.3)
+    ax.plot_surface(x_max,Y,Z,alpha=0.3)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.view_init(0,0)
+    ax.grid()
+    plt.show()
+
+def usage() : pass
+
+def check_option(parser, opt) :
+    print opt
+    if opt.dim<=1 or opt.dim>=4 :
+        parser.error('-d shoud be 2 or 3')
+        sys.exit(2)
+    if opt.plot != 'y' and opt.plot != 'n' :
+        parser.error("-p should be 'y' or 'n'")
+        sys.exit(2)
+
+def demo2d(opt) :
+    nr_pts = opt.nr_points
+    upper_bound = opt.upper_bound
+    points = create_random_points(upper_bound,nr_pts,opt.dim)
     kdtree = KdTree(points,dim=2)
     kdtree.build()
-    # print "Height of the tree is : " , kdtree.height
-    a=[]
-    # print kdtree.inorder([], inte=False)
-    maxes = [10000,10000]
-    mins = [1000,1000]
-    # print a
-    print kdtree.query(maxes,mins)
-    plot_points(points,maxes,mins)
-    # print "depth of the tree is : " , kdtree.root.depth
+    maxes = map(int,opt.maxes.split(','))
+    mins = map(int,opt.mins.split(','))
+    res = kdtree.query(maxes,mins)
+    logging.debug('Query resule {0}'.format(res))
+    if opt.plot == 'y' :
+        plot_points(points,maxes,mins)
+
+def demo3d(opt) :
+    nr_pts = opt.nr_points
+    upper_bound = opt.upper_bound
+    points = create_random_points(upper_bound,nr_pts,opt.dim)
+    kdtree = KdTree(points,dim=3)
+    kdtree.build()
+    maxes = map(int,opt.maxes.split(','))
+    mins = map(int,opt.mins.split(','))
+    res = kdtree.query(maxes,mins)
+    logging.debug('Query resule {0}'.format(res))
+    if opt.plot == 'y' :
+        plot_points3d(points,maxes,mins,res)
+
+def main() :
+    parser = OptionParser()
+    parser.add_option('-d','--dim',dest='dim',
+        type='int',help='Dimension of points',metavar='DIM')
+    parser.add_option('-n','--nr-points',dest='nr_points',
+        type='int',help='Number of points',metavar='PTS')
+    parser.add_option('-u','--upper-bound',dest='upper_bound',
+        type='int',help='upper bound of each axis',metavar='UB')
+    parser.add_option('-m','--rect-max',dest='maxes',
+        type='string',help='max of hyperrectangle (as list)',metavar='[RX]')
+    parser.add_option('-x','--rect-min',dest='mins',
+        type='string',help='min of hyperrectangle (as list)',metavar='[RM]')
+    parser.add_option('-p','--plot', dest='plot', help='plot the points')
+    option,args = parser.parse_args()
+    check_option(parser,option)
+    if option.dim == 2 :
+        demo2d(option)
+    elif option.dim == 3 :
+        demo3d(option)
 
 if __name__ == '__main__':
     main()
