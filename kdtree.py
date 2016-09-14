@@ -183,35 +183,11 @@ class KdTree(object) :
         if len(pts) == 1 :
             return LeafNode(data=pts[0], parent=parent, depth=depth)
         dim = self.__canon(depth)
-        # print 'dim :' + str(dim)
-        # max_next = max(pts,key = lambda x :
-            # x[self.__canon(dim+1)])[self.__canon(dim+1)]
-        # min_next = min(pts,key = lambda x :
-            # x[self.__canon(dim+1)])[self.__canon(dim+1)]
-        # min_cur = pts[0][dim] #max(pts,key = lambda x : x[dim])[dim] #max of current dimension
-        # max_cur = pts[len(pts)-1][dim] #min(pts,key = lambda x : x[dim])[dim] #min of current dimension
-        # max_nn = max(pts,key = lambda x :
-            # x[self.__canon(dim+2)])[self.__canon(dim+2)]
-        # min_nn = min(pts,key = lambda x :
-            # x[self.__canon(dim+2)])[self.__canon(dim+2)]
         med = KdTree.median(pts,dim)
-        # next_view = self.__sorted_view[self.__canon(dim+1)]
-        # lesser = [pt for pt in next_view if pt[dim]<med
-            # and min_next<=pt[self.__canon(dim+1)]<=max_next
-            # and min_cur<=pt[dim]<=max_cur
-            # and min_nn<=pt[self.__canon(dim+2)]<=max_nn]
-        # greater = [pt for pt in next_view if pt[dim]>=med
-            # and min_next<=pt[self.__canon(dim+1)]<=max_next
-            # and min_cur<=pt[dim]<=max_cur
-            # and min_nn<=pt[self.__canon(dim+2)]<=max_nn]
         lesser = [pt for pt in pts if pt[dim]<med]
         lesser.sort(key=lambda x : x[self.__canon(dim+1)])
         greater = [pt for pt in pts if pt[dim]>=med]
         greater.sort(key=lambda x : x[self.__canon(dim+1)])
-        # print 'median : ' + str(med)
-        # print str(min_cur) + ':' + str(max_cur)
-        # print lesser
-        # print greater
         node = InternalNode(axis = med, parent=parent, depth=depth)
         node.left = self.__build_tree(lesser,depth+1, parent=node)
         node.right = self.__build_tree(greater,depth+1, parent=node)
@@ -260,6 +236,7 @@ class KdTree(object) :
 
 def create_random_points(upper_bound, nr_pts, nr_dim):
     '''returns a LIST of size nr_pts of nr_dim dimensional points'''
+    logging.debug('Generating {0} random points...'.format(nr_pts))
     return [create_random_point(upper_bound,nr_dim) for i in xrange(nr_pts)]
 
 def create_random_point(upper_bound, nr_dim) :
@@ -324,10 +301,10 @@ def plot_points3d(points,maxes,mins,res) :
     ax.grid()
     plt.show()
 
-def usage() : pass
+def usage() :
+    print "[Usage] : ./kdtree.py -d DIM -n NR -u UB --rect-min='YYY' --rect-max='ZZZ' -p y"
 
 def check_option(parser, opt) :
-    print opt
     if opt.dim<=1 or opt.dim>=4 :
         parser.error('-d shoud be 2 or 3')
         sys.exit(2)
@@ -344,7 +321,7 @@ def demo2d(opt) :
     maxes = map(int,opt.maxes.split(','))
     mins = map(int,opt.mins.split(','))
     res = kdtree.query(maxes,mins)
-    logging.debug('Query resule {0}'.format(res))
+    logging.debug('Query result {0}'.format(res))
     if opt.plot == 'y' :
         plot_points(points,maxes,mins)
 
@@ -357,11 +334,12 @@ def demo3d(opt) :
     maxes = map(int,opt.maxes.split(','))
     mins = map(int,opt.mins.split(','))
     res = kdtree.query(maxes,mins)
-    logging.debug('Query resule {0}'.format(res))
+    logging.debug('Query result {0}'.format(res))
     if opt.plot == 'y' :
         plot_points3d(points,maxes,mins,res)
 
 def main() :
+    usage()
     parser = OptionParser()
     parser.add_option('-d','--dim',dest='dim',
         type='int',help='Dimension of points',metavar='DIM')
